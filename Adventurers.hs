@@ -9,7 +9,6 @@ data Adventurer = P1 | P2 | P5 | P10 deriving (Show,Eq)
 type Objects = Either Adventurer ()
 
 -- The time that each adventurer needs to cross the bridge
--- To implement 
 getTimeAdv :: Adventurer -> Int
 getTimeAdv P1 = 1
 getTimeAdv P2 = 2 
