@@ -88,11 +88,11 @@ remLD (LD x) = x
 
 -- To implement
 instance Functor ListDur where
-   fmap f = undefined
+   fmap f = LD . (map (fmap f)) . remLD
 
 -- To implement
 instance Applicative ListDur where
-   pure x = undefined
+   pure x = LD []
    l1 <*> l2 = undefined
 
 -- To implement
