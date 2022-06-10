@@ -107,6 +107,9 @@ lexec = do s0 <- linitialMove
            s3 <- lpossibleMoves s2
            return s3
 
+lexec2 = do s0 <- linitialMove
+            s1 <- lpossibleMoves s0
+            return s1
 
 -- Determines whether the target position was achieved or not
 ltargetAchieved :: (Int,Int) -> LogList (Int,Int) -> Maybe (String,(Int,Int))

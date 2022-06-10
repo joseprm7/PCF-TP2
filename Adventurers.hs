@@ -56,7 +56,7 @@ mChangeState os s = foldr changeState s os
 possible moves that the adventurers can make.  --}
 -- To implement
 allValidPlays :: State -> ListDur State
-allValidPlays = undefined
+allValidPlays = undefined--manyChoice [...]
 
 {-- For a given number n and initial state, the function calculates
 all possible n-sequences of moves that the adventures can make --}
@@ -92,13 +92,20 @@ instance Functor ListDur where
 
 -- To implement
 instance Applicative ListDur where
-   pure x = LD []
-   l1 <*> l2 = undefined
+   pure x = LD [ Duration(0,x) ]
+   l1 <*> l2 = LD $ do x <- remLD l1
+                       y <- remLD l2
+                       return $ x <*> y 
+                         
 
 -- To implement
 instance Monad ListDur where
-   return = undefined
-   l >>= k = undefined
+   return = pure
+   l >>= k = undefined{--LD $ do x <- remLD l
+                     g x where
+                       g (Duration x) = let u = remLD (k x) in
+                          map (\d -> Duration (getDuration d, getValue d)) u--}
+
 
 manyChoice :: [ListDur a] -> ListDur a
 manyChoice = LD . concat . (map remLD)
