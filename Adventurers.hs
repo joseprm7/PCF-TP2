@@ -56,19 +56,39 @@ mChangeState os s = foldr changeState s os
 possible moves that the adventurers can make.  --}
 -- To implement
 allValidPlays :: State -> ListDur State
-allValidPlays = undefined--manyChoice [...]
+{--allValidPlays s = manyChoice [LD [Duration (getTimeAdv P1, mChangeState [Left P1, Right ()] s)], 
+                              LD [Duration (getTimeAdv P2, mChangeState [Left P2, Right ()] s)],
+                              LD [Duration (getTimeAdv P5, mChangeState [Left P5, Right ()] s)],
+                              LD [Duration (getTimeAdv P10, mChangeState [Left P10, Right ()] s)],
+                              LD [Duration (getTimeAdv P1 + getTimeAdv P2, mChangeState [Left P1, Left P2, Right ()] s)],
+                              LD [Duration (getTimeAdv P1 + getTimeAdv P5, mChangeState [Left P1, Left P5, Right ()] s)],
+                              LD [Duration (getTimeAdv P1 + getTimeAdv P10, mChangeState [Left P1, Left P10, Right ()] s)],
+                              LD [Duration (getTimeAdv P2 + getTimeAdv P5, mChangeState [Left P2, Left P5, Right ()] s)],
+                              LD [Duration (getTimeAdv P2 + getTimeAdv P10, mChangeState [Left P2, Left P10, Right ()] s)],
+                              LD [Duration (getTimeAdv P5 + getTimeAdv P10, mChangeState [Left P5, Left P10, Right ()] s)]]--}
+allValidPlays s = manyChoice [return (mChangeState [Left P1, Right ()] s), 
+                              return (mChangeState [Left P2, Right ()] s),
+                              return (mChangeState [Left P5, Right ()] s),
+                              return (mChangeState [Left P10, Right ()] s),
+                              return (mChangeState [Left P1, Left P2, Right ()] s),
+                              return (mChangeState [Left P1, Left P5, Right ()] s),
+                              return (mChangeState [Left P1, Left P10, Right ()] s),
+                              return (mChangeState [Left P2, Left P5, Right ()] s),
+                              return (mChangeState [Left P2, Left P10, Right ()] s),
+                              return (mChangeState [Left P5, Left P10, Right ()] s)]
 
 {-- For a given number n and initial state, the function calculates
 all possible n-sequences of moves that the adventures can make --}
 -- To implement 
 exec :: Int -> State -> ListDur State
-exec = undefined
+exec = undefined{--do s1 <- allValidPlays s
+              return $ exec (n-1) s1--}  
 
 {-- Is it possible for all adventurers to be on the other side
 in <=17 min and not exceeding 5 moves ? --}
 -- To implement
 leq17 :: Bool
-leq17 = undefined
+leq17 = undefined--exec 5 gInit 
 
 {-- Is it possible for all adventurers to be on the other side
 in < 17 min ? --}
@@ -101,10 +121,10 @@ instance Applicative ListDur where
 -- To implement
 instance Monad ListDur where
    return = pure
-   l >>= k = undefined{--LD $ do x <- remLD l
+   l >>= k = LD $ do x <- remLD l
                      g x where
-                       g (Duration x) = let u = remLD (k x) in
-                          map (\d -> Duration (getDuration d, getValue d)) u--}
+                        g (Duration (d, a)) = let u = remLD (k a) in 
+                           map (\(Duration (d', a)) -> (Duration (d + d', a))) u
 
 
 manyChoice :: [ListDur a] -> ListDur a
