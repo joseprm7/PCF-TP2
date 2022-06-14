@@ -2,6 +2,7 @@
 module Adventurers where
 
 import DurationMonad
+import Data.List
 
 -- The list of adventurers
 data Adventurer = P1 | P2 | P5 | P10 deriving (Show,Eq)
@@ -51,51 +52,60 @@ changeState a s = let v = s a in (\x -> if x == a then not v else s x)
 mChangeState :: [Objects] -> State -> State
 mChangeState os s = foldr changeState s os
                                
+twrite :: Int -> ListDur a -> ListDur a 
+twrite t l = LD $ let l' = remLD l in 
+                     map (\(Duration(t',x)) -> Duration (t + t', x)) l' 
+
+possibleStates :: State -> [[Objects]]
+possibleStates s = filter (\p -> x p && y1 p && y2 p) . subsequences . filter z $ l
+                where
+                  x = elem (Right ())
+                  y1 = (>) 4 . length
+                  y2 = (<) 1 . length
+                  z = \x -> s (Right()) == s x
+                  l = [Left P1, Left P2, Left P5, Left P10, Right ()]
+
+
+objectToTime :: Objects -> Int 
+objectToTime (Left x) = getTimeAdv x 
+objectToTime _ = 0
+
+getStateTime :: [Objects] -> Int 
+getStateTime l = foldr (\o -> max (objectToTime o)) 0 l
+
 
 {-- For a given state of the game, the function presents all the
 possible moves that the adventurers can make.  --}
 -- To implement
 allValidPlays :: State -> ListDur State
-allValidPlays s = manyChoice [LD [Duration (getTimeAdv P1, mChangeState [Left P1, Right ()] s)], 
-                              LD [Duration (getTimeAdv P2, mChangeState [Left P2, Right ()] s)],
-                              LD [Duration (getTimeAdv P5, mChangeState [Left P5, Right ()] s)],
-                              LD [Duration (getTimeAdv P10, mChangeState [Left P10, Right ()] s)],
-                              LD [Duration (getTimeAdv P1 + getTimeAdv P2, mChangeState [Left P1, Left P2, Right ()] s)],
-                              LD [Duration (getTimeAdv P1 + getTimeAdv P5, mChangeState [Left P1, Left P5, Right ()] s)],
-                              LD [Duration (getTimeAdv P1 + getTimeAdv P10, mChangeState [Left P1, Left P10, Right ()] s)],
-                              LD [Duration (getTimeAdv P2 + getTimeAdv P5, mChangeState [Left P2, Left P5, Right ()] s)],
-                              LD [Duration (getTimeAdv P2 + getTimeAdv P10, mChangeState [Left P2, Left P10, Right ()] s)],
-                              LD [Duration (getTimeAdv P5 + getTimeAdv P10, mChangeState [Left P5, Left P10, Right ()] s)]]
-{--allValidPlays s = manyChoice [return (mChangeState [Left P1, Right ()] s), 
-                              return (mChangeState [Left P2, Right ()] s),
-                              return (mChangeState [Left P5, Right ()] s),
-                              return (mChangeState [Left P10, Right ()] s),
-                              return (mChangeState [Left P1, Left P2, Right ()] s),
-                              return (mChangeState [Left P1, Left P5, Right ()] s),
-                              return (mChangeState [Left P1, Left P10, Right ()] s),
-                              return (mChangeState [Left P2, Left P5, Right ()] s),
-                              return (mChangeState [Left P2, Left P10, Right ()] s),
-                              return (mChangeState [Left P5, Left P10, Right ()] s)]--}
+allValidPlays s = manyChoice $ 
+   map (\l -> twrite (getStateTime l) (return (mChangeState l s))) (possibleStates s)
 
 {-- For a given number n and initial state, the function calculates
 all possible n-sequences of moves that the adventures can make --}
 -- To implement 
 exec :: Int -> State -> ListDur State
-exec = undefined{--do s1 <- allValidPlays s
-              return $ exec (n-1) s1--}  
+exec 0 s = allValidPlays s
+exec n s = do s1 <- allValidPlays s
+              s2 <- LD $ (remLD s1) ++ (remLD (exec (n-1) s1))
+              return s2 
 
 {-- Is it possible for all adventurers to be on the other side
 in <=17 min and not exceeding 5 moves ? --}
 -- To implement
 leq17 :: Bool
-leq17 = undefined--exec 5 gInit 
+leq17 = length (
+   filter (\(Duration (t,s)) -> t <= 17 && s == const True) 
+      (remLD  (exec 4 gInit))) > 0
+
 
 {-- Is it possible for all adventurers to be on the other side
 in < 17 min ? --}
 -- To implement
 l17 :: Bool
-l17 = undefined
-
+l17 = length (
+   filter (\(Duration (t,s)) -> t < 17 && s == const True) 
+      (remLD  (exec 4 gInit))) > 0
 
 --------------------------------------------------------------------------
 {-- Implementation of the monad used for the problem of the adventurers.
