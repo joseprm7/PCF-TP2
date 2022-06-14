@@ -2,7 +2,7 @@
 module Adventurers where
 
 import DurationMonad
-
+import Data.List
 -- The list of adventurers
 data Adventurer = P1 | P2 | P5 | P10 deriving (Show,Eq)
 -- Adventurers + the lantern
@@ -11,7 +11,7 @@ type Objects = Either Adventurer ()
 -- The time that each adventurer needs to cross the bridge
 getTimeAdv :: Adventurer -> Int
 getTimeAdv P1 = 1
-getTimeAdv P2 = 2 
+getTimeAdv P2 = 2
 getTimeAdv P5 = 5
 getTimeAdv _  = 10
 
@@ -24,7 +24,7 @@ side of the bridge.  --}
 type State = Objects -> Bool
 
 instance Show State where
-  show s = (show . (fmap show)) [s (Left P1),
+  show s = (show . fmap show) [s (Left P1),
                                  s (Left P2),
                                  s (Left P5),
                                  s (Left P10),
@@ -50,7 +50,17 @@ changeState a s = let v = s a in (\x -> if x == a then not v else s x)
 -- Changes the state of the game of a list of objects 
 mChangeState :: [Objects] -> State -> State
 mChangeState os s = foldr changeState s os
-                               
+
+
+possibleStates :: State -> [[Objects]]
+possibleStates s = filter (\p -> x p && y1 p && y2 p) . subsequences . filter z $ l
+                where
+                  x = elem (Right ())
+                  y1 = (>) 4 . length
+                  y2 = (<) 1 . length
+                  z = \x -> s (Right()) == s x
+                  l = [Left P1, Left P2, Left P5, Left P10, Right ()]
+
 
 {-- For a given state of the game, the function presents all the
 possible moves that the adventurers can make.  --}
@@ -88,25 +98,25 @@ remLD (LD x) = x
 
 -- To implement
 instance Functor ListDur where
-   fmap f = LD . (map (fmap f)) . remLD
+   fmap f = LD . map (fmap f) . remLD
 
 -- To implement
 instance Applicative ListDur where
    pure x = LD [ Duration(0,x) ]
    l1 <*> l2 = LD $ do x <- remLD l1
                        y <- remLD l2
-                       return $ x <*> y 
-                         
+                       return $ x <*> y
+
 
 -- To implement
 instance Monad ListDur where
    return = pure
-   l >>= k = undefined{--LD $ do x <- remLD l
+   l >>= k = LD $ do x <- remLD l
                      g x where
-                       g (Duration x) = let u = remLD (k x) in
-                          map (\d -> Duration (getDuration d, getValue d)) u--}
+                        g (Duration (d, a)) = let u = remLD (k a) in
+                           map (\(Duration (d', a)) -> Duration (d + d', a)) u
 
 
 manyChoice :: [ListDur a] -> ListDur a
-manyChoice = LD . concat . (map remLD)
+manyChoice = LD . concatMap remLD
 --------------------------------------------------------------------------
