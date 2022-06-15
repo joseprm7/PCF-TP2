@@ -99,6 +99,13 @@ execAux n s = do s1 <- allValidPlays s
                  s2 <- execAux (n-1) s1
                  return s2               
 
+execSequences :: Int -> State -> [ListDur State]
+execSequences = undefined{--0 s = map (\d -> LD [d]) (remLD (exec 0 s))
+execSequences n s = do s1 <- remLD (exec n s)
+                       s2 <- map remLD (execSequences (n-1) s)
+                       s2 <- s1: s2 
+                       return s2--}
+
 {-- Is it possible for all adventurers to be on the other side
 in <=17 min and not exceeding 5 moves ? --}
 leq17 :: Bool
