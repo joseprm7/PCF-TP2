@@ -77,8 +77,8 @@ getStateTime = foldr (max . objectToTime) 0
 {-- For a given state of the game, the function presents all the
 possible moves that the adventurers can make.  --}
 allValidPlays :: State -> ListDur State
-allValidPlays s = manyChoice $ 
-   map (\l -> twrite (getStateTime l) (return (mChangeState l s))) 
+allValidPlays s = manyChoice $
+   map (\l -> twrite (getStateTime l) (return (mChangeState l s)))
       (possibleStates s)
 
 
@@ -90,30 +90,25 @@ lmerge n1 n2 = LD $ remLD n1 ++ remLD n2
 all possible n-sequences of moves that the adventurers can make --}
 -- To implement 
 exec :: Int -> State -> ListDur State
-exec 0 s = allValidPlays s 
-exec n s = LD ((remLD (exec (n-1) s)) ++ (remLD (execAux n s)))
+exec 0 s = allValidPlays s
+exec n s = LD (remLD (exec (n-1) s) ++ remLD (execAux n s))
 
 execAux :: Int -> State -> ListDur State
-execAux 0 s = allValidPlays s 
+execAux 0 s = allValidPlays s
 execAux n s = do s1 <- allValidPlays s
-                 s2 <- execAux (n-1) s1
-                 return s2               
+                 execAux (n-1) s1
 
 {-- Is it possible for all adventurers to be on the other side
 in <=17 min and not exceeding 5 moves ? --}
 leq17 :: Bool
-leq17 = length (
-   filter (\(Duration (t,s)) -> t <= 17 && s == gInit) 
-      (remLD  (exec 4 gInit))) > 0
+leq17 = any (\(Duration (t,s)) -> t <= 17 && s == const True) (remLD  (exec 4 gInit))
 
 
 {-- Is it possible for all adventurers to be on the other side
 in < 17 min ? --}
 -- To implement
 l17 :: Bool
-l17 = length (
-   filter (\(Duration (t,s)) -> t < 17 && s == gInit) 
-      (remLD  (exec 4 gInit))) > 0
+l17 = any (\(Duration (t,s)) -> t < 17 && s == const True) (remLD  (exec 8 gInit))
 
 --------------------------------------------------------------------------
 {-- Implementation of the monad used for the problem of the adventurers.
