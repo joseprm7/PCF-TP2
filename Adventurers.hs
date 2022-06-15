@@ -3,7 +3,7 @@ module Adventurers where
 
 import DurationMonad
 import Data.List
-
+import Data.IntMap.Merge.Lazy (merge)
 -- The list of adventurers
 data Adventurer = P1 | P2 | P5 | P10 deriving (Show,Eq)
 -- Adventurers + the lantern
@@ -12,7 +12,7 @@ type Objects = Either Adventurer ()
 -- The time that each adventurer needs to cross the bridge
 getTimeAdv :: Adventurer -> Int
 getTimeAdv P1 = 1
-getTimeAdv P2 = 2 
+getTimeAdv P2 = 2
 getTimeAdv P5 = 5
 getTimeAdv _  = 10
 
@@ -25,7 +25,7 @@ side of the bridge.  --}
 type State = Objects -> Bool
 
 instance Show State where
-  show s = (show . (fmap show)) [s (Left P1),
+  show s = (show . fmap show) [s (Left P1),
                                  s (Left P2),
                                  s (Left P5),
                                  s (Left P10),
@@ -51,10 +51,10 @@ changeState a s = let v = s a in (\x -> if x == a then not v else s x)
 -- Changes the state of the game of a list of objects 
 mChangeState :: [Objects] -> State -> State
 mChangeState os s = foldr changeState s os
-                               
-twrite :: Int -> ListDur a -> ListDur a 
-twrite t l = LD $ let l' = remLD l in 
-                     map (\(Duration(t',x)) -> Duration (t + t', x)) l' 
+
+twrite :: Int -> ListDur a -> ListDur a
+twrite t l = LD $ let l' = remLD l in
+                     map (\(Duration(t',x)) -> Duration (t + t', x)) l'
 
 possibleStates :: State -> [[Objects]]
 possibleStates s = filter (\p -> x p && y1 p && y2 p) . subsequences . filter z $ l
@@ -66,12 +66,12 @@ possibleStates s = filter (\p -> x p && y1 p && y2 p) . subsequences . filter z 
                   l = [Left P1, Left P2, Left P5, Left P10, Right ()]
 
 
-objectToTime :: Objects -> Int 
-objectToTime (Left x) = getTimeAdv x 
+objectToTime :: Objects -> Int
+objectToTime (Left x) = getTimeAdv x
 objectToTime _ = 0
 
-getStateTime :: [Objects] -> Int 
-getStateTime l = foldr (\o -> max (objectToTime o)) 0 l
+getStateTime :: [Objects] -> Int
+getStateTime = foldr (max . objectToTime) 0
 
 
 {-- For a given state of the game, the function presents all the
@@ -80,6 +80,11 @@ allValidPlays :: State -> ListDur State
 allValidPlays s = manyChoice $ 
    map (\l -> twrite (getStateTime l) (return (mChangeState l s))) 
       (possibleStates s)
+
+
+lmerge :: ListDur a -> ListDur a -> ListDur a
+lmerge n1 n2 = LD $ remLD n1 ++ remLD n2
+
 
 {-- For a given number n and initial state, the function calculates
 all possible n-sequences of moves that the adventurers can make --}
@@ -121,25 +126,25 @@ remLD (LD x) = x
 
 -- To implement
 instance Functor ListDur where
-   fmap f = LD . (map (fmap f)) . remLD
+   fmap f = LD . map (fmap f) . remLD
 
 -- To implement
 instance Applicative ListDur where
    pure x = LD [ Duration(0,x) ]
    l1 <*> l2 = LD $ do x <- remLD l1
                        y <- remLD l2
-                       return $ x <*> y 
-                         
+                       return $ x <*> y
+
 
 -- To implement
 instance Monad ListDur where
    return = pure
    l >>= k = LD $ do x <- remLD l
                      g x where
-                        g (Duration (d, a)) = let u = remLD (k a) in 
-                           map (\(Duration (d', a)) -> (Duration (d + d', a))) u
+                        g (Duration (d, a)) = let u = remLD (k a) in
+                           map (\(Duration (d', a)) -> Duration (d + d', a)) u
 
 
 manyChoice :: [ListDur a] -> ListDur a
-manyChoice = LD . concat . (map remLD)
+manyChoice = LD . concatMap remLD
 --------------------------------------------------------------------------
