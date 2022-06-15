@@ -76,26 +76,29 @@ getStateTime l = foldr (\o -> max (objectToTime o)) 0 l
 
 {-- For a given state of the game, the function presents all the
 possible moves that the adventurers can make.  --}
--- To implement
 allValidPlays :: State -> ListDur State
 allValidPlays s = manyChoice $ 
-   map (\l -> twrite (getStateTime l) (return (mChangeState l s))) (possibleStates s)
+   map (\l -> twrite (getStateTime l) (return (mChangeState l s))) 
+      (possibleStates s)
 
 {-- For a given number n and initial state, the function calculates
-all possible n-sequences of moves that the adventures can make --}
+all possible n-sequences of moves that the adventurers can make --}
 -- To implement 
 exec :: Int -> State -> ListDur State
-exec 0 s = allValidPlays s
-exec n s = do s1 <- allValidPlays s
-              s2 <- LD $ (remLD s1) ++ (remLD (exec (n-1) s1))
-              return s2 
+exec 0 s = allValidPlays s 
+exec n s = LD ((remLD (exec (n-1) s)) ++ (remLD (execAux n s)))
+
+execAux :: Int -> State -> ListDur State
+execAux 0 s = allValidPlays s 
+execAux n s = do s1 <- allValidPlays s
+                 s2 <- execAux (n-1) s1
+                 return s2               
 
 {-- Is it possible for all adventurers to be on the other side
 in <=17 min and not exceeding 5 moves ? --}
--- To implement
 leq17 :: Bool
 leq17 = length (
-   filter (\(Duration (t,s)) -> t <= 17 && s == const True) 
+   filter (\(Duration (t,s)) -> t <= 17 && s == gInit) 
       (remLD  (exec 4 gInit))) > 0
 
 
@@ -104,7 +107,7 @@ in < 17 min ? --}
 -- To implement
 l17 :: Bool
 l17 = length (
-   filter (\(Duration (t,s)) -> t < 17 && s == const True) 
+   filter (\(Duration (t,s)) -> t < 17 && s == gInit) 
       (remLD  (exec 4 gInit))) > 0
 
 --------------------------------------------------------------------------
