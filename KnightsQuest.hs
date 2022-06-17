@@ -1,3 +1,5 @@
+module KnightsQuest where 
+
 {-- Knight's quest. From "Learn You a Haskell for Great Good".
 
 Here's a problem that really lends itself to being solved with non-determinism.
@@ -17,13 +19,13 @@ initialMove = return (0,0)
 choice :: ([a],[a]) -> [a]
 choice (l,m) = l ++ m
 
-manyChoice :: [[a]] -> [a]
-manyChoice = concat
+manyChoiceK :: [[a]] -> [a]
+manyChoiceK = concat
 
 
 -- The Knight's Quest (from "Learn you a Haskell for Great Good")
 possibleMoves :: (Int,Int) -> [(Int,Int)]
-possibleMoves (x,y) = manyChoice [
+possibleMoves (x,y) = manyChoiceK [
   return (x-1,y+2),
   return (x+1,y+2),
   return (x-1,y-2),
@@ -33,11 +35,11 @@ possibleMoves (x,y) = manyChoice [
   return (x+2,y+1),
   return (x+2,y-1)]
 
-exec = do s0 <- initialMove
-          s1 <- possibleMoves s0
-          s2 <- possibleMoves s1
-          s3 <- possibleMoves s2
-          return s3
+execK = do s0 <- initialMove
+           s1 <- possibleMoves s0
+           s2 <- possibleMoves s1
+           s3 <- possibleMoves s2
+           return s3
 
 
 -- Determines whether the target position was achieved or not
@@ -81,7 +83,7 @@ instance Monad LogList where
                        g(s,x) = let u = (remLog (k x)) in map (\(s',x) -> (s ++ s', x)) u
 
 manyLChoice :: [LogList a] -> LogList a
-manyLChoice = Log . manyChoice . (map remLog)
+manyLChoice = Log . manyChoiceK . (map remLog)
 
 mwrite :: String -> LogList a -> LogList a
 mwrite msg l = Log $ let l' = remLog l in map (\(s,x) -> (s ++ msg, x)) l'
@@ -101,15 +103,15 @@ lpossibleMoves (x,y) = manyLChoice [
   mwrite (" "++(show (x,y))++" ") (return (x+2,y+1)),
   mwrite (" "++(show (x,y))++" ") (return (x+2,y-1))]
 
-lexec = do s0 <- linitialMove
-           s1 <- lpossibleMoves s0
-           s2 <- lpossibleMoves s1
-           s3 <- lpossibleMoves s2
-           return s3
-
-lexec2 = do s0 <- linitialMove
+lexecK = do s0 <- linitialMove
             s1 <- lpossibleMoves s0
-            return s1
+            s2 <- lpossibleMoves s1
+            s3 <- lpossibleMoves s2
+            return s3
+
+lexecK2 = do s0 <- linitialMove
+             s1 <- lpossibleMoves s0
+             return s1
 
 -- Determines whether the target position was achieved or not
 ltargetAchieved :: (Int,Int) -> LogList (Int,Int) -> Maybe (String,(Int,Int))
