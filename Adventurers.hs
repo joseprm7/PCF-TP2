@@ -3,8 +3,8 @@ module Adventurers where
 
 import DurationMonad
 import Data.List
-import Data.IntMap.Merge.Lazy (merge)
 import KnightsQuest
+
 -- The list of adventurers
 data Adventurer = P1 | P2 | P5 | P10 deriving (Show,Eq)
 -- Adventurers + the lantern
@@ -102,6 +102,21 @@ leq17 = any (\(Duration (t,s)) -> t <= 17 && s == const True) (remLD  (exec 4 gI
 in < 17 min ? --}
 l17 :: Bool
 l17 = any (\(Duration (t,s)) -> t < 17 && s == const True) (remLD  (exec 5 gInit))
+
+----------------------------------------------------------------------
+
+sAllValidPlays :: (String, State) -> ListDur (String, State)
+sAllValidPlays (log,s) = LD $ map (\(Duration (t,s')) -> Duration (t, (log ++ " " ++ show s' ++ " ", s'))) 
+   (remLD (allValidPlays s))
+
+sExec :: Int -> (String, State) -> ListDur (String, State)
+sExec 0 s = sAllValidPlays s 
+sExec n s = LD (remLD (sExec (n-1) s) ++ remLD (sExecAux n s))
+
+sExecAux :: Int -> (String, State) -> ListDur (String, State)
+sExecAux 0 s = sAllValidPlays s 
+sExecAux n s = do s1 <- sAllValidPlays s 
+                  sExecAux (n-1) s1
 
 --------------------------------------------------------------------------
 {-- Implementation of the monad used for the problem of the adventurers.
