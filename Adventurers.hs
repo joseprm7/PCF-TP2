@@ -105,16 +105,17 @@ l17 = any (\(Duration (t,s)) -> t < 17 && s == const True) (remLD  (exec 5 gInit
 
 ---------------------  Property --------------------------------------
 
-{-- Property that verifies if the maximum possible time of an execution of n steps equals the maximum 
-    time of an execution of (n+1) steps. The goal here is to prove that, once we have enough steps to
+{-- Property that verifies if the all the possible states of an execution of n steps are the same solutions 
+    as an execution of (n+1) steps. The goal here is to prove that, once we have enough steps to
     place all adventurers in the right side, for an odd value of n, this property is always True. --}
 
 prop1 :: Int -> Bool 
-prop1 n = foldr max 0 (map getTime l) == (foldr max 0 (map getTime l2))
-       where 
-          getTime = \(Duration(t,s)) -> t
-          l = filter (\(Duration (t,s)) -> s == const True) (remLD  (exec (n-1) gInit))
-          l2 = filter (\(Duration (t,s)) -> s == const True) (remLD  (exec n gInit))
+prop1 n = l == l2 
+        where 
+          state = \(Duration (t,s)) -> s
+          goal = \(Duration (t,s)) -> s == const True
+          l = map state (filter goal (remLD  (exec (n-1) gInit)))
+          l2 = map state (filter goal (remLD  (exec n gInit)))
 
 ----------------------- N Possible Sequences -----------------------------
 
