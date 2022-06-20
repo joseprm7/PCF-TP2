@@ -105,9 +105,10 @@ l17 = any (\(Duration (t,s)) -> t < 17 && s == const True) (remLD  (exec 5 gInit
 
 ---------------------  Property --------------------------------------
 
-{-- Property that verifies if the all the possible states of an execution of n steps are the same solutions 
-    as an execution of (n+1) steps. The goal here is to prove that, once we have enough steps to
-    place all adventurers in the right side, for an odd value of n, this property is always True. --}
+{-- Property that verifies if the all the succeded Duration of an execution (by succeded it is meant 
+    to be a Duration with a state const True) in n steps are the same solutions as in the execution 
+    of (n+1) steps. The goal here is to prove that, once we have enough steps to place all adventurers 
+    in the right side, for an odd value of n, this property is always True. --}
 
 prop1 :: Int -> Bool 
 prop1 n = l == l2 
