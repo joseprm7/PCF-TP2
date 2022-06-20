@@ -110,8 +110,9 @@ l17 = any (\(Duration (t,s)) -> t < 17 && s == const True) (remLD  (exec 5 gInit
     place all adventurers in the right side, for an odd value of n, this property is always True. --}
 
 prop1 :: Int -> Bool 
-prop1 n = foldr max 0 (map (\(Duration(t,s)) -> t) l) == (foldr max 0 (map (\(Duration(t,s)) -> t) l2))
+prop1 n = foldr max 0 (map getTime l) == (foldr max 0 (map getTime l2))
        where 
+          getTime = \(Duration(t,s)) -> t
           l = filter (\(Duration (t,s)) -> s == const True) (remLD  (exec (n-1) gInit))
           l2 = filter (\(Duration (t,s)) -> s == const True) (remLD  (exec n gInit))
 
