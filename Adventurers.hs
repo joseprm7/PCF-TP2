@@ -3,7 +3,7 @@ module Adventurers where
 
 import DurationMonad
 import Data.List
-import KnightsQuest
+import Data.List.Split
 
 -- The list of adventurers
 data Adventurer = P1 | P2 | P5 | P10 deriving (Show,Eq)
@@ -103,12 +103,26 @@ in < 17 min ? --}
 l17 :: Bool
 l17 = any (\(Duration (t,s)) -> t < 17 && s == const True) (remLD  (exec 5 gInit))
 
-----------------------------------------------------------------------
+---------------------  Property --------------------------------------
+
+{-- Property that verifies if the maximum possible time of an execution of n steps equals the maximum 
+    time of an execution of (n+1) steps. The goal here is to prove that, once we have enough steps to
+    place all adventurers in the right side, for an odd value of n, this property is always True. --}
+
+prop1 :: Int -> Bool 
+prop1 n = foldr max 0 (map (\(Duration(t,s)) -> t) l) == (foldr max 0 (map (\(Duration(t,s)) -> t) l2))
+       where 
+          l = filter (\(Duration (t,s)) -> s == const True) (remLD  (exec (n-1) gInit))
+          l2 = filter (\(Duration (t,s)) -> s == const True) (remLD  (exec n gInit))
+
+----------------------- N Possible Sequences -----------------------------
 
 sAllValidPlays :: (String, State) -> ListDur (String, State)
 sAllValidPlays (log,s) = LD $ map (\(Duration (t,s')) -> Duration (t, (log ++ " " ++ show s' ++ " ", s'))) 
    (remLD (allValidPlays s))
 
+-- This function returns all the possible sequences, whilst sExecAux gets only the final states, together
+-- with its previous sequence. 
 sExec :: Int -> (String, State) -> ListDur (String, State)
 sExec 0 s = sAllValidPlays s 
 sExec n s = LD (remLD (sExec (n-1) s) ++ remLD (sExecAux n s))
@@ -117,6 +131,17 @@ sExecAux :: Int -> (String, State) -> ListDur (String, State)
 sExecAux 0 s = sAllValidPlays s 
 sExecAux n s = do s1 <- sAllValidPlays s 
                   sExecAux (n-1) s1
+
+-- result is just a cleaner version of resultList
+
+resultList = map retLog (filter p list) !! 0
+      where 
+         retLog = \(Duration (t, (log,s))) -> log
+         p = \(Duration (t, (log, s))) -> t <= 17 && s == const True
+         list = remLD (sExecAux 4 (show gInit, gInit))
+
+
+result = filter (not . (`elem` ".?!-:;\"\'")) resultList
 
 --------------------------------------------------------------------------
 {-- Implementation of the monad used for the problem of the adventurers.
