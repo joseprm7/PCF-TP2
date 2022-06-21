@@ -143,9 +143,14 @@ resultList = map retLog (filter p list) !! 0
          p = \(Duration (t, (log, s))) -> t <= 17 && s == const True
          list = remLD (sExecAux 4 (show gInit, gInit))
 
+resultList2 = map retLog (filter p list) !! 1
+      where 
+         retLog = \(Duration (t, (log,s))) -> log
+         p = \(Duration (t, (log, s))) -> t <= 17 && s == const True
+         list = remLD (sExecAux 4 (show gInit, gInit))
 
 result = filter (not . (`elem` ".?!-:;\"\'")) resultList
-
+result2 = filter (not . (`elem` ".?!-:;\"\'")) resultList2
 --------------------------------------------------------------------------
 {-- Implementation of the monad used for the problem of the adventurers.
 Recall the Knight's quest --}
